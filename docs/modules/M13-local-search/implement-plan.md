@@ -11,6 +11,11 @@
 
 ---
 
+> **Ảnh hưởng của model thực tế (19/11/2026, [spike](../../spikes/lmstudio.md))** – embedding nomic 768 chiều, yếu với tiếng Việt:
+> - Embedding câu hỏi dùng `embed(..., kind="query")` (tiền tố `search_query: `).
+> - Giữ RRF nhưng cho phép trọng số nhánh: `LOCAL_VECTOR_WEIGHT` (mặc định 0.5), `LOCAL_BM25_WEIGHT` (1.0) – chỉnh theo recall đo được trên bộ đánh giá.
+> - Notice từ vector không lọc (BR-11.6) có thể nhiễu hơn → thêm ngưỡng tương đồng tối thiểu `LOCAL_NOTICE_MIN_SCORE`.
+
 ## 1. Mục tiêu
 
 Tìm điều khoản cho **câu hỏi tình huống** (Q2, Q4): vector + BM25 có lọc hiệu lực ngay khi truy xuất, hợp nhất RRF, thu thập notice từ các đoạn "giống nhưng đã hết hiệu lực", mở rộng đồ thị 1 bước, cắt theo ngân sách ~3 000 token. Thay nhánh "BM25 tạm" của M09.

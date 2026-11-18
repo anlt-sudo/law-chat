@@ -11,6 +11,12 @@
 
 ---
 
+> **Ảnh hưởng của model thực tế (19/11/2026, [spike](../../spikes/lmstudio.md))** – DeepSeek R1 0528 Qwen3 8B luôn suy nghĩ, ~7 token/s:
+> - Phân tích câu hỏi **chỉ bằng quy tắc** (đúng phạm vi M09) – không có gì thay đổi.
+> - Sinh câu trả lời mất ~60–90 s → timeout cứng BR-08.5 (30 s) đặt qua `CHAT_GENERATION_TIMEOUT_S` (mặc định dev 180 s); golden test với LM Studio thật dùng timeout tương ứng.
+> - `max_tokens` của `chat_answer` = 1 024 + `LLM_REASONING_BUDGET` (M01 §2b), nếu không model hết token khi đang suy nghĩ.
+> - Đo và ghi `latency_ms` thực tế; KPI P95 ≤ 10 s **không đạt được** với cấu hình này – ghi vào báo cáo, không chặn PoC.
+
 ## 1. Mục tiêu
 
 Một đường xuyên suốt: `POST /chat/sessions/{id}/messages` (`stream=false`) → phân tích bằng quy tắc → DIRECT / GRAPH (LOCAL tạm bằng BM25) → **lọc hiệu lực** → Qwen sinh câu trả lời có `[Cx]` → kiểm tra trích dẫn → lưu lượt hỏi đáp. Demo được Q1, Q5 và ví dụ inception §5.3.

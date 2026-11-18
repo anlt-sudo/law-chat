@@ -24,6 +24,20 @@ Một module duy nhất (`app/llm`) bọc mọi lời gọi tới LM Studio: h�
 | Mock LM Studio cho test / CI | |
 | API quản trị `/admin/llm/*` | |
 
+## 2b. Model thực tế (quyết định 19/11/2026)
+
+Máy dev dùng **DeepSeek R1 0528 Qwen3 8B** (chat) và **nomic-embed-text v1.5** (embedding, 768 chiều) thay cho Qwen3.5 9B + bge-m3 – kết quả đo ở [docs/spikes/lmstudio.md](../../spikes/lmstudio.md). Điều chỉnh so với F17:
+
+| Điểm F17 | Điều chỉnh |
+|---|---|
+| BR-17.2 tắt thinking | Model **luôn suy nghĩ**, không tắt được (`/no_think`, `enable_thinking` đều vô hiệu). Thêm `THINKING_MODE=none\|template\|soft_switch` (mặc định `none` cho model này): gateway không chèn chỉ thị; `TaskProfile.thinking` chỉ còn ý nghĩa "có lưu suy nghĩ vào trace hay không" |
+| BR-17.4 lọc `<think>` | LM Studio trả suy nghĩ ở `message.reasoning_content` (stream: `delta.reasoning_content`), `content` sạch. Gateway đọc `reasoning_content` khi `return_thinking=True`; vẫn chạy `strip_think` / `ThinkStreamFilter` trên `content` để an toàn khi đổi model / cấu hình |
+| BR-17.13 token | Cộng thêm `LLM_REASONING_BUDGET` (mặc định 600 token) vào `max_tokens` của mọi tác vụ, nếu không model hết token khi còn đang suy nghĩ → `content` rỗng. `content` rỗng + `finish_reason = length` → lỗi `LLMOutputError("REASONING_TRUNCATED")` |
+| Timeout bảng 1.1 | Đo được ~7 token/s → mọi timeout cấu hình được qua env `LLM_TIMEOUT_<TASK>`; mặc định dev: `chat_answer` 180 s, `query_analysis` tắt (xem M09/M15), `global_map` 120 s, `extract_relations` 300 s, `classify_topics` 180 s, `summarize_cluster` 300 s, `judge` 180 s |
+| `embed` | Thêm tiền tố nomic: `EMBEDDING_QUERY_PREFIX` ("search_query: ") cho truy vấn, `EMBEDDING_DOCUMENT_PREFIX` ("search_document: ") cho lập chỉ mục – tham số `kind: Literal["query","document"]` của `embed()`. Kiểm tra mỗi đầu vào ≤ `EMBEDDING_CONTEXT_TOKENS` (2048) |
+| BR-17.10 health | `/v1/models` liệt kê cả model chưa nạp (`state: not-loaded` ở `/api/v0/models`). Health báo thêm `loaded: bool` lấy từ `/api/v0/models` (API riêng của LM Studio, bỏ qua nếu không có) |
+| Mock LM Studio (M01-T2) | Mock trả `reasoning_content` + `content`, và kịch bản hết token khi đang suy nghĩ |
+
 ## 3. Thiết kế
 
 ### 3.1. Cấu trúc file

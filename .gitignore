@@ -1,0 +1,30 @@
+# Bí mật / cấu hình cục bộ
+.env
+.env.*
+!.env.example
+
+# Dữ liệu runtime (file gốc, văn bản chuẩn hóa, snapshot)
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+dist/
+
+# IDE / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+key.txt
+.env.example

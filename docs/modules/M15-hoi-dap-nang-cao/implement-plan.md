@@ -11,6 +11,12 @@
 
 ---
 
+> **Ảnh hưởng của model thực tế (19/11/2026, [spike](../../spikes/lmstudio.md))** – DeepSeek R1 luôn suy nghĩ (~200–350 token mỗi lời gọi, ~7 token/s):
+> - **LLM phân tích câu hỏi (BR-09.6) mặc định TẮT** (`QUERY_ANALYSIS_LLM=false`): một lời gọi mất ≥ 30 s, không thể vừa ngân sách 1.5 s. F09 chạy bằng quy tắc + ý định theo từ khóa (BR-09.9); câu hỏi nối tiếp dùng kế thừa ngữ cảnh bằng quy tắc (§2.1). Chỉ bật khi đổi sang model nhanh hơn.
+> - Sinh lại (BR-14.6) tối đa 2 lần → có thể > 4 phút: mặc định dev `ANSWER_MAX_REGENERATIONS=1`.
+> - SSE: phát thêm sự kiện `thinking` (chỉ trạng thái "Đang suy nghĩ…", **không** kèm nội dung) trong lúc model đang ở phần `reasoning_content`, để giao diện không như bị treo.
+> - Hạn 30 s (BR-08.5) đọc từ `CHAT_GENERATION_TIMEOUT_S`.
+
 ## 1. Mục tiêu
 
 Hoàn thiện pipeline hỏi đáp: hiểu câu hỏi tình huống / tổng hợp và câu hỏi nối tiếp bằng LLM (quy tắc vẫn ghi đè thực thể), kiểm tra trích dẫn đầy đủ V1–V6 với sinh lại tối đa 2 lần, và stream câu trả lời qua SSE với các sự kiện F08 §5.

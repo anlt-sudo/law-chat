@@ -1,0 +1,106 @@
+# LegalGraph – môi trường dev. LM Studio KHÔNG nằm ở đây: chạy trên máy host / máy GPU,
+# backend trỏ tới qua LLM_BASE_URL (Docker Desktop: http://host.docker.internal:1234/v1).
+name: legalgraph
+
+x-backend-common: &backend-common
+  build:
+    context: .
+    dockerfile: docker/backend/Dockerfile
+  image: legalgraph-backend:dev
+  env_file:
+    - path: .env
+      required: false
+  environment:
+    DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-legalgraph}:${POSTGRES_PASSWORD:-legalgraph-dev}@postgres:5432/${POSTGRES_DB:-legalgraph}
+    NEO4J_URI: bolt://neo4j:7687
+    ES_URL: http://elasticsearch:9200
+    DATA_DIR: /data
+    # localhost trong container không phải máy host → trỏ LM Studio qua host.docker.internal
+    LLM_BASE_URL: ${LLM_BASE_URL_DOCKER:-http://host.docker.internal:1235/v1}
+  volumes:
+    - ./backend:/app/backend
+    - ./data:/data
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  depends_on:
+    postgres:
+      condition: service_healthy
+    neo4j:
+      condition: service_healthy
+    elasticsearch:
+      condition: service_healthy
+
+services:
+  neo4j:
+    image: neo4j:5.26-community
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-legalgraph-dev}
+      NEO4J_PLUGINS: '["apoc","graph-data-science"]'
+      NEO4J_dbms_security_procedures_unrestricted: apoc.*,gds.*
+      NEO4J_server_memory_heap_initial__size: 512m
+      NEO4J_server_memory_heap_max__size: 1G
+      NEO4J_server_memory_pagecache_size: 512m
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+      - neo4j_plugins:/plugins
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p \"$${NEO4J_AUTH#neo4j/}\" 'RETURN 1' >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 60s
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-legalgraph}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-legalgraph-dev}
+      POSTGRES_DB: ${POSTGRES_DB:-legalgraph}
+    ports:
+      # Cổng host mặc định 5433 để không đụng PostgreSQL cài sẵn trên máy (thường chiếm 5432)
+      - "${PG_HOST_PORT:-5433}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  elasticsearch:
+    build:
+      context: docker/elasticsearch
+    image: legalgraph-elasticsearch:8.15.3
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"   # chỉ bản dev
+      ES_JAVA_OPTS: -Xms1g -Xmx1g
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+
+  backend:
+    <<: *backend-common
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    ports:
+      - "8000:8000"
+
+  worker:
+    <<: *backend-common
+    command: ["python", "-m", "app.worker"]
+
+volumes:
+  neo4j_data:
+  neo4j_plugins:
+  pg_data:
+  es_data:

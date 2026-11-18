@@ -56,4 +56,6 @@ Mỗi module trong [development-plan.md](../development-plan.md) có một thư 
 | 12 | Trường `ContextItem.unit_ids` | M14 | Một ý tổng hợp của Global Search có nhiều điều khoản nguồn; verifier cần biết |
 | 13 | Bảng `notification` + API `POST /ingest/source-documents/{id}/confirm-revision` | M16 | Thông báo biên tập viên / quản trị; xác nhận bản đính chính (BR-15.5) |
 
+| 14 | Model thực tế: DeepSeek R1 0528 Qwen3 8B + nomic-embed-text v1.5 (768 chiều) thay Qwen3.5 9B + bge-m3 | M01, M09, M12, M13, M15 | Quyết định 19/11/2026 – xem [spike](../spikes/lmstudio.md); mỗi plan bị ảnh hưởng có khối "Ảnh hưởng của model thực tế" |
+
 > Số thứ tự migration ghi trong các plan (`0001_base`, `0002_llm`…) chỉ để minh họa thứ tự; khi làm dùng revision Alembic tự sinh.

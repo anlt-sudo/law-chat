@@ -11,6 +11,13 @@
 
 ---
 
+> **Ảnh hưởng của model thực tế (19/11/2026, [spike](../../spikes/lmstudio.md))** – embedding là **nomic-embed-text v1.5, 768 chiều**, không phải bge-m3 1024:
+> - `EMBEDDING_DIM=768`; vector index Neo4j đã tự tạo lại ở 768 chiều (M00 `drop_mismatched_vector_indexes`).
+> - Văn bản lập chỉ mục có tiền tố `search_document: `, truy vấn có `search_query: ` (yêu cầu của nomic) – qua tham số `kind` của `embed()` (M01 §2b).
+> - Context nomic **2 048 token** (không phải 8 000 như BR-07.3) → cắt đoạn ≤ ~1 500 token ước lượng (chừa sai số tiếng Việt), embedding = trung bình các đoạn.
+> - nomic yếu với tiếng Việt (spike: chênh lệch tương đồng liên quan / không liên quan chỉ 0.81 vs 0.69) → M13 phải dựa nhiều vào BM25; đo recall riêng nhánh vector trên bộ câu hỏi đánh giá.
+> - Tóm tắt cụm (`summarize_cluster`) chậm (luôn suy nghĩ) → chạy ngoài giờ, chỉ cụm dirty.
+
 ## 1. Mục tiêu
 
 - Embedding bge-m3 (1024 chiều) cho mọi `PhienBan`, cập nhật tăng dần theo `embedding_stale`.

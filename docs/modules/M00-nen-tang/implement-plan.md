@@ -92,7 +92,7 @@ law-chat/
 | Service | Image | Cổng | Ghi chú |
 |---|---|---|---|
 | `neo4j` | `neo4j:5` | 7474, 7687 | `NEO4J_PLUGINS='["apoc","graph-data-science"]'`, heap 1–2 GB, volume `neo4j_data` |
-| `postgres` | `postgres:16` | 5432 | volume `pg_data` |
+| `postgres` | `postgres:16` | host `PG_HOST_PORT` (mặc định 5433) → 5432 | volume `pg_data`; tránh đụng PostgreSQL cài sẵn trên máy ở 5432 |
 | `elasticsearch` | build `docker/elasticsearch` | 9200 | `discovery.type=single-node`, `xpack.security.enabled=false` (chỉ dev), heap 1 GB |
 | `backend` | build `docker/backend` | 8000 | `uvicorn app.main:app --reload`, mount source |
 | `worker` | cùng image | – | `python -m app.worker` |
