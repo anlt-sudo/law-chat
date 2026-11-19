@@ -11,6 +11,7 @@ from app.core.logging import setup_logging
 from app.db.pg import dispose_engine, get_engine
 from app.jobs import queue
 from app.jobs.worker import Worker
+from app.llm import close_gateway
 
 logger = logging.getLogger("app.worker")
 
@@ -42,6 +43,7 @@ async def _main() -> None:
     try:
         await Worker(engine, poll_interval_s=settings.worker_poll_interval_s).run(stop)
     finally:
+        await close_gateway()
         await dispose_engine()
 
 

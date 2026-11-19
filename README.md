@@ -3,7 +3,7 @@
 Chatbot tra cứu văn bản pháp luật Việt Nam ứng dụng GraphRAG (đồ thị tri thức có yếu tố thời gian + RAG), LLM Qwen3.5 9B chạy local qua LM Studio.
 
 - Tài liệu: [inception](docs/inception.md) · [đặc tả feature](docs/features/README.md) · [kế hoạch phát triển](docs/development-plan.md) · [plan & checklist từng module](docs/modules/README.md)
-- Trạng thái: **M00 – nền tảng** (khung repo, hạ tầng dev, hàng đợi job, quy ước dùng chung).
+- Trạng thái: **M00 – nền tảng** ✔ · **M01 – LLM Gateway** ✔ (`app/llm`, API `/api/v1/admin/llm/*`).
 
 ## Yêu cầu máy
 
@@ -81,6 +81,8 @@ LM Studio mặc định HTTP không xác thực – **chỉ mở trong mạng n�
 ./scripts/dev.ps1 test-unit     # không cần dịch vụ
 ./scripts/dev.ps1 test-int      # cần up-deps; dùng DB riêng legalgraph_test (tự tạo)
 ```
+
+Test gọi LM Studio thật (chậm, vài phút) chỉ chạy khi bật: `$env:RUN_LMSTUDIO=1; cd backend; uv run pytest tests/lmstudio -s`.
 
 Test tích hợp tự **skip** khi dịch vụ chưa chạy. Đặt `REQUIRE_SERVICES=postgres,neo4j,elasticsearch` để thiếu dịch vụ thì **fail** (CI đặt `postgres,neo4j`).
 

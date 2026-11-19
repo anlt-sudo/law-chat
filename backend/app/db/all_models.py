@@ -3,5 +3,6 @@
 from app.core.api_keys import ApiKey
 from app.db.base import Base
 from app.jobs.models import PipelineJob, PipelineRun
+from app.llm.models import LlmCallLog, RuntimeFlag
 
-__all__ = ["ApiKey", "Base", "PipelineJob", "PipelineRun"]
+__all__ = ["ApiKey", "Base", "LlmCallLog", "PipelineJob", "PipelineRun", "RuntimeFlag"]

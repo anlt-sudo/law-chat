@@ -38,6 +38,7 @@ asyncio_default_fixture_loop_scope = "session"
 asyncio_default_test_loop_scope = "session"
 markers = [
     "integration: cần PostgreSQL / Neo4j / Elasticsearch đang chạy (tự skip nếu không có, trừ khi REQUIRE_SERVICES đặt)",
+    "lmstudio: gọi LM Studio thật, chỉ chạy khi RUN_LMSTUDIO=1",
 ]
 filterwarnings = ["error::pytest.PytestUnraisableExceptionWarning"]
 
